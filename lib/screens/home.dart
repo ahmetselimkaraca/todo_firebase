@@ -93,7 +93,7 @@ class _HomeState extends State<Home> {
     final appBar = AppBar(
       shadowColor: Colors.transparent,
       title: Text(
-        'To-Do List',
+        'My Tasks',
         style: TextStyle(
           color: Theme.of(context).primaryColor,
           fontWeight: FontWeight.bold,
