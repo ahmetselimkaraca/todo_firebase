@@ -240,19 +240,21 @@ class _NewTaskState extends State<NewTask> {
             Stack(
               children: [
                 Positioned(
-                  left: 6,
-                  top: 6,
-                  child: CircleAvatar(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Theme.of(context).primaryColorDark,
-                            Theme.of(context).primaryColorLight,
-                          ],
+                  top: 3,
+                  child: Container(
+                    margin: EdgeInsets.all(3),
+                    child: CircleAvatar(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Theme.of(context).primaryColorDark,
+                              Theme.of(context).primaryColorLight,
+                            ],
+                          ),
                         ),
                       ),
                     ),

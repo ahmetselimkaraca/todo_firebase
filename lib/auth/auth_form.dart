@@ -77,7 +77,7 @@ class _AuthFormState extends State<AuthForm> {
           break;
       }
 
-      showErrorToast(context, _errorMessage);
+      showErrorToast(_errorMessage);
     }
   }
 
@@ -101,7 +101,7 @@ class _AuthFormState extends State<AuthForm> {
           ],
         ),
       );
-  void showErrorToast(BuildContext context, String msg) {
+  void showErrorToast(String msg) {
     FToast().init(context);
     FToast().showToast(child: errorToast(msg), gravity: ToastGravity.BOTTOM);
   }
@@ -223,7 +223,7 @@ class _AuthFormState extends State<AuthForm> {
                         key: const ValueKey("rePassword"),
                         validator: (val) {
                           if (val != _pass.text) {
-                            showErrorToast(context, 'Passwords do not match');
+                            showErrorToast('Passwords do not match');
                             return "";
                           } else
                             return null;

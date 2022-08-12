@@ -45,7 +45,7 @@ class ColorOptions extends StatelessWidget {
       return InkWell(
         onTap: () {
           Navigator.pop(context);
-          changeThemeColor(color);
+          changeThemeColor(colorString);
         },
         splashColor: color.withAlpha(31),
         highlightColor: color.withAlpha(31),

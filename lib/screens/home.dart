@@ -29,9 +29,11 @@ class _HomeState extends State<Home> {
   getUid() {
     FirebaseAuth auth = FirebaseAuth.instance;
     final User user = auth.currentUser;
-    setState(() {
-      uid = user.uid;
-    });
+    setState(
+      () {
+        uid = user.uid;
+      },
+    );
   }
 
   String timeOfDayAsHhMm(TimeOfDay tod) {
@@ -172,7 +174,7 @@ class _HomeState extends State<Home> {
               },
             );
           },
-          icon: const Icon(Icons.menu),
+          icon: Icon(Icons.menu, color: Theme.of(context).primaryColorDark),
         )
       ],
     );
@@ -187,6 +189,7 @@ class _HomeState extends State<Home> {
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
+        resizeToAvoidBottomInset: false,
         appBar: appBar,
         body: Stack(
           children: [
@@ -212,7 +215,10 @@ class _HomeState extends State<Home> {
             ),
           ],
         ),
-        floatingActionButton: NewTask(_addTaskToFirebase),
+        floatingActionButton: Padding(
+            padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom),
+            child: NewTask(_addTaskToFirebase)),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       ),
     );

@@ -1,3 +1,4 @@
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 
 import 'package:flutter/material.dart';
@@ -28,7 +29,6 @@ class _TaskListState extends State<TaskList> {
     super.initState();
   }
 
-// ignore: todo
 // TODO: Update this to actually add an image too
   void _updateHasImage(currTask) {
     FirebaseFirestore.instance
@@ -82,29 +82,82 @@ class _TaskListState extends State<TaskList> {
     return date == "1970-01-01 00:00:00.000Z";
   }
 
+  Widget dismissedToast(String msg, dynamic currTask) {
+    if (msg.length > 20) {
+      msg = msg.substring(0, 18) + "...";
+    }
+    msg += ' dismissed';
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(25),
+        color: Theme.of(context).primaryColorLight.withAlpha(200),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextButton(
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.zero,
+              minimumSize: Size.zero,
+            ),
+            onPressed: () {
+              FirebaseFirestore.instance
+                  .collection("tasks")
+                  .doc(widget.uid)
+                  .collection("mytasks")
+                  .doc(currTask['id'])
+                  .set(
+                {
+                  "desc": currTask['desc'],
+                  "id": currTask['id'],
+                  "isDone": currTask['isDone'],
+                  "hasImage": currTask['hasImage'],
+                  "dueDate": currTask['dueDate'],
+                  "dueTime": currTask['dueTime'],
+                },
+              );
+            },
+            child: Text(
+              "Undo",
+            ),
+          ),
+          Text(msg),
+        ],
+      ),
+    );
+  }
+
+  void showDismissedToast(String msg, dynamic currTask) {
+    FToast().init(context);
+    FToast().removeQueuedCustomToasts();
+    FToast().showToast(
+        child: dismissedToast(msg, currTask), gravity: ToastGravity.BOTTOM);
+  }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder(
       stream: myStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
+          return Center(
             child: SizedBox(
                 height: 100, width: 100, child: CircularProgressIndicator()),
           );
         } else if (snapshot.data.size == 0) {
           return LayoutBuilder(
-            builder: ((context, constraints) {
+            builder: ((context, raints) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     SizedBox(
-                      height: constraints.maxHeight * 0.4,
+                      height: raints.maxHeight * 0.4,
                       child: Image.asset(
                         'assets/images/empty-list.png',
                         colorBlendMode: BlendMode.modulate,
-                        color: Theme.of(context).primaryColor,
+                        color: Theme.of(context).primaryColorLight,
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -112,7 +165,7 @@ class _TaskListState extends State<TaskList> {
                       'No tasks!',
                       style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: constraints.maxHeight * 0.07),
+                          fontSize: raints.maxHeight * 0.07),
                     ),
                     SizedBox(
                       width: 300,
@@ -129,7 +182,7 @@ class _TaskListState extends State<TaskList> {
                             ),
                             WidgetSpan(
                               child: Icon(
-                                Icons.post_add,
+                                Icons.add,
                                 size: 17,
                                 color: Theme.of(context).primaryColorDark,
                               ),
@@ -184,31 +237,7 @@ class _TaskListState extends State<TaskList> {
                         .doc(currTask['id'])
                         .delete();
 
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("${currTask['desc']} dismissed"),
-                        action: SnackBarAction(
-                          label: 'Undo',
-                          onPressed: () {
-                            FirebaseFirestore.instance
-                                .collection("tasks")
-                                .doc(widget.uid)
-                                .collection("mytasks")
-                                .doc(currTask['id'])
-                                .set(
-                              {
-                                "desc": currTask['desc'],
-                                "id": currTask['id'],
-                                "isDone": currTask['isDone'],
-                                "hasImage": currTask['hasImage'],
-                                "dueDate": currTask['dueDate'],
-                                "dueTime": currTask['dueTime'],
-                              },
-                            );
-                          },
-                        ),
-                      ),
-                    );
+                    showDismissedToast(currTask['desc'], currTask);
                   },
                   child: ListTile(
                     contentPadding: EdgeInsets.zero,
@@ -225,8 +254,8 @@ class _TaskListState extends State<TaskList> {
                         });
                       },
                       icon: !currTask['isDone']
-                          ? const Icon(Icons.circle_outlined)
-                          : const Icon(Icons.check_circle),
+                          ? Icon(Icons.circle_outlined)
+                          : Icon(Icons.check_circle),
                       color: !currTask['isDone']
                           ? Colors.grey
                           : Theme.of(context).primaryColorDark,
@@ -235,7 +264,7 @@ class _TaskListState extends State<TaskList> {
                       currTask['desc'],
                       style: !currTask['isDone']
                           ? null
-                          : const TextStyle(
+                          : TextStyle(
                               decoration: TextDecoration.lineThrough,
                               color: Colors.grey),
                     ),
@@ -252,7 +281,7 @@ class _TaskListState extends State<TaskList> {
                         ? IconButton(
                             onPressed: () =>
                                 null, //* Will be used for displayImage
-                            icon: const Icon(Icons.image_outlined),
+                            icon: Icon(Icons.image_outlined),
                             color: Theme.of(context).primaryColorDark,
                             splashRadius: 20,
                           )
