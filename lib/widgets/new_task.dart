@@ -250,7 +250,7 @@ class _NewTaskState extends State<NewTask> {
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
                           colors: [
-                            Theme.of(context).primaryColor,
+                            Theme.of(context).primaryColorDark,
                             Theme.of(context).primaryColorLight,
                           ],
                         ),

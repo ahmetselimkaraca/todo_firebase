@@ -21,6 +21,9 @@ class _AuthFormState extends State<AuthForm> {
   var _password = "";
   bool _isLoginPage = true;
   bool _showPassword = false;
+  /* the only purpose of this is to make sure that pressing next on the password 
+  field focuses on the reenter password field instead of the password visibility option */
+  FocusNode reenterFocus = new FocusNode();
 
   String _errorMessage = 'default error message';
 
@@ -75,17 +78,14 @@ class _AuthFormState extends State<AuthForm> {
       }
 
       showErrorToast(context, _errorMessage);
-
-      print("zort");
-      print(err);
     }
   }
 
-  static Widget errorToast(String msg) => Container(
+  Widget errorToast(String msg) => Container(
         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(25),
-          color: Colors.greenAccent,
+          color: Theme.of(context).primaryColorLight,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -169,7 +169,8 @@ class _AuthFormState extends State<AuthForm> {
                                 ? (_) {
                                     startAuth();
                                   }
-                                : null,
+                                : (_) => reenterFocus
+                                    .requestFocus(), // to prevent focusing on the password visibility button
                             key: const ValueKey("password"),
                             controller: _pass,
                             validator: (val) {
@@ -213,6 +214,7 @@ class _AuthFormState extends State<AuthForm> {
                       elevation: 5,
                       shadowColor: Theme.of(context).primaryColor,
                       child: TextFormField(
+                        focusNode: reenterFocus,
                         obscureText: true,
                         keyboardType: TextInputType.visiblePassword,
                         onFieldSubmitted: (_) {
@@ -233,7 +235,7 @@ class _AuthFormState extends State<AuthForm> {
                           errorStyle: TextStyle(height: 0),
                           contentPadding: EdgeInsets.all(15),
                           border: InputBorder.none,
-                          hintText: "Renter Password",
+                          hintText: "Reenter Password",
                         ),
                       ),
                     ),

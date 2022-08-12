@@ -103,7 +103,7 @@ class _TaskListState extends State<TaskList> {
                       height: constraints.maxHeight * 0.4,
                       child: Image.asset(
                         'assets/images/empty-list.png',
-                        colorBlendMode: BlendMode.overlay,
+                        colorBlendMode: BlendMode.modulate,
                         color: Theme.of(context).primaryColor,
                         fit: BoxFit.cover,
                       ),
@@ -131,7 +131,7 @@ class _TaskListState extends State<TaskList> {
                               child: Icon(
                                 Icons.post_add,
                                 size: 17,
-                                color: Theme.of(context).primaryColor,
+                                color: Theme.of(context).primaryColorDark,
                               ),
                             ),
                             TextSpan(
@@ -229,7 +229,7 @@ class _TaskListState extends State<TaskList> {
                           : const Icon(Icons.check_circle),
                       color: !currTask['isDone']
                           ? Colors.grey
-                          : Theme.of(context).primaryColor,
+                          : Theme.of(context).primaryColorDark,
                     ),
                     title: Text(
                       currTask['desc'],
@@ -253,7 +253,7 @@ class _TaskListState extends State<TaskList> {
                             onPressed: () =>
                                 null, //* Will be used for displayImage
                             icon: const Icon(Icons.image_outlined),
-                            color: Theme.of(context).colorScheme.secondary,
+                            color: Theme.of(context).primaryColorDark,
                             splashRadius: 20,
                           )
                         : IconButton(

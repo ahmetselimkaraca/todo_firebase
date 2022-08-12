@@ -34,9 +34,9 @@ class TaskOptions extends StatelessWidget {
           child: const Text('Edit Task'),
         ),
         TextButton(
-          style: currTask['hasImage']
-              ? TextButton.styleFrom(primary: Colors.red)
-              : null,
+          style: TextButton.styleFrom(
+            primary: currTask['hasImage'] ? Colors.red : null,
+          ),
           onPressed: () {
             updateHasImage(currTask);
             Navigator.pop(context);

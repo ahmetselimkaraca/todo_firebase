@@ -163,7 +163,6 @@ class _EditTaskState extends State<EditTask> {
                           constraints: BoxConstraints(),
                           splashRadius: 20,
                           icon: Icon(Icons.edit_calendar_rounded),
-                          color: Theme.of(context).primaryColor,
                           onPressed: () {
                             FocusManager.instance.primaryFocus?.unfocus;
                             _dateAndTimePicker();
@@ -192,9 +191,6 @@ class _EditTaskState extends State<EditTask> {
                     child: Text(
                       'Confirm',
                       style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    style: TextButton.styleFrom(
-                      primary: Theme.of(context).primaryColor,
                     ),
                     onPressed: submitData,
                   ),

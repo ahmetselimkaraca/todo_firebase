@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 
 import "package:firebase_auth/firebase_auth.dart";
 import "package:cloud_firestore/cloud_firestore.dart";
+import 'package:todo_firebase/widgets/color_options.dart';
 
 import '../widgets/new_task.dart';
 import '../widgets/task_list.dart';
 import '../models/task.dart';
 
 class Home extends StatefulWidget {
-  const Home({Key key}) : super(key: key);
+  Function changeThemeColor;
+
+  Home(this.changeThemeColor, {Key key}) : super(key: key);
 
   @override
   State<Home> createState() => _HomeState();
@@ -83,19 +86,12 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    final bokBar = AppBar(
-      elevation: 0,
-      flexibleSpace: Expanded(
-        child: Container(color: Colors.grey),
-      ),
-    );
-
     final appBar = AppBar(
       shadowColor: Colors.transparent,
       title: Text(
         'My Tasks',
         style: TextStyle(
-          color: Theme.of(context).primaryColor,
+          color: Theme.of(context).primaryColorDark,
           fontWeight: FontWeight.bold,
         ),
       ),
@@ -136,6 +132,18 @@ class _HomeState extends State<Home> {
                         TextButton(
                           onPressed: () {
                             Navigator.pop(context);
+                            showModalBottomSheet(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(15),
+                                    topRight: Radius.circular(15)),
+                              ),
+                              isScrollControlled: true,
+                              context: context,
+                              builder: (bCtx) {
+                                return ColorOptions(widget.changeThemeColor);
+                              },
+                            );
                           },
                           child: Text('Change Theme Color'),
                         ),
@@ -156,7 +164,7 @@ class _HomeState extends State<Home> {
                             style: TextStyle(color: Colors.red),
                           ),
                         ),
-                        Icon(Icons.logout, size: 15),
+                        Icon(Icons.logout, color: Colors.red, size: 15),
                       ],
                     ),
                   ],
