@@ -102,12 +102,13 @@ class _HomeState extends State<Home> {
       flexibleSpace: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: <Color>[
-                Theme.of(context).primaryColor,
-                Theme.of(context).scaffoldBackgroundColor,
-              ]),
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: <Color>[
+              Theme.of(context).primaryColor,
+              Theme.of(context).scaffoldBackgroundColor,
+            ],
+          ),
         ),
       ),
       actions: [

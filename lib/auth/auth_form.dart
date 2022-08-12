@@ -69,16 +69,41 @@ class _AuthFormState extends State<AuthForm> {
         case 'weak-password':
           _errorMessage = 'Password is too weak';
           break;
+        case 'unknown':
+          _errorMessage = 'Please enter your credentials';
+          break;
       }
 
-      Fluttertoast.showToast(
-        msg: _errorMessage,
-        backgroundColor: Colors.red,
-      );
+      showErrorToast(context, _errorMessage);
 
       print("zort");
       print(err);
     }
+  }
+
+  static Widget errorToast(String msg) => Container(
+        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(25),
+          color: Colors.greenAccent,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.close,
+              size: 20,
+            ),
+            SizedBox(
+              width: 10,
+            ),
+            Text(msg),
+          ],
+        ),
+      );
+  void showErrorToast(BuildContext context, String msg) {
+    FToast().init(context);
+    FToast().showToast(child: errorToast(msg), gravity: ToastGravity.BOTTOM);
   }
 
   @override
@@ -140,17 +165,14 @@ class _AuthFormState extends State<AuthForm> {
                                 ? TextInputAction.done
                                 : TextInputAction.next,
                             keyboardType: TextInputType.visiblePassword,
-                            onFieldSubmitted: (_) {
-                              startAuth();
-                            },
+                            onFieldSubmitted: _isLoginPage
+                                ? (_) {
+                                    startAuth();
+                                  }
+                                : null,
                             key: const ValueKey("password"),
                             controller: _pass,
                             validator: (val) {
-                              if (val.isEmpty) {
-                                Fluttertoast.showToast(
-                                    msg: 'Invalid Password',
-                                    backgroundColor: Colors.red);
-                              }
                               return null;
                             },
                             onSaved: (val) {
@@ -198,15 +220,8 @@ class _AuthFormState extends State<AuthForm> {
                         },
                         key: const ValueKey("rePassword"),
                         validator: (val) {
-                          if (val.isEmpty) {
-                            Fluttertoast.showToast(
-                                msg: 'Invalid Password',
-                                backgroundColor: Colors.red);
-                            return "";
-                          } else if (val != _pass.text) {
-                            Fluttertoast.showToast(
-                                msg: 'Passwords do not match',
-                                backgroundColor: Colors.red);
+                          if (val != _pass.text) {
+                            showErrorToast(context, 'Passwords do not match');
                             return "";
                           } else
                             return null;
