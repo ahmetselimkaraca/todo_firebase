@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class Task {
   final String taskText;
   final String id;
-  String dueDate = DateTime.utc(1970, 1, 1).toString();
+  String dueDate = DateTime.utc(2200, 1, 1).toString();
   String dueTime = '';
   bool isDone;
   bool hasImage;

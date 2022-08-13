@@ -37,8 +37,8 @@ class _EditTaskState extends State<EditTask> {
     Navigator.of(context).pop();
   }
 
-  bool isEpoch(String date) {
-    return date == "1970-01-01 00:00:00.000Z";
+  bool isFuture(String date) {
+    return date == "2200-01-01 00:00:00.000Z";
   }
 
   void _dateAndTimePicker() {
@@ -62,9 +62,9 @@ class _EditTaskState extends State<EditTask> {
       context: context,
       //if the task has no date, set initial date to now. If it does, set it to that date
       initialDate:
-          isEpoch(_selectedDate.toString()) ? DateTime.now() : _selectedDate,
+          isFuture(_selectedDate.toString()) ? DateTime.now() : _selectedDate,
       //if the task has no date, set first available date to now. If it does, check if the selected date has passed.
-      firstDate: isEpoch(_selectedDate.toString())
+      firstDate: isFuture(_selectedDate.toString())
           ? DateTime.now()
           : _selectedDate.compareTo(DateTime.now()) <= 0
               // if the selected date has passed, set first available date to selected date. If not, set it to now.
@@ -111,7 +111,7 @@ class _EditTaskState extends State<EditTask> {
     //when 'CANCEL' is pressed on DatePicker, the date is set to null, this is to prevent that
     if (_selectedDate == null) {
       _selectedTime == null;
-      _selectedDate = DateTime.utc(1970, 1, 1);
+      _selectedDate = DateTime.utc(2200, 1, 1);
     }
 
     return SingleChildScrollView(
@@ -145,7 +145,7 @@ class _EditTaskState extends State<EditTask> {
                     child: Row(
                       children: [
                         Text(
-                          isEpoch(_selectedDate.toString())
+                          isFuture(_selectedDate.toString())
                               ? 'No Date'
                               : DateFormat('dd/MM').format(_selectedDate),
                         ),

@@ -10,20 +10,22 @@ import '../screens/home.dart';
 
 class TaskList extends StatefulWidget {
   final String uid;
-  TaskList(this.uid, {Key key}) : super(key: key);
+  var myStream;
+  TaskList(this.myStream, this.uid, {Key key}) : super(key: key);
 
   @override
   State<TaskList> createState() => _TaskListState();
 }
 
 class _TaskListState extends State<TaskList> {
-  var myStream;
   @override
   void initState() {
-    myStream = FirebaseFirestore.instance
+    widget.myStream = FirebaseFirestore.instance
         .collection('tasks')
         .doc(widget.uid)
         .collection('mytasks')
+        .orderBy('dueDate')
+        .orderBy('dueTime')
         .snapshots();
 
     super.initState();
@@ -78,8 +80,8 @@ class _TaskListState extends State<TaskList> {
     );
   }
 
-  bool isEpoch(String date) {
-    return date == "1970-01-01 00:00:00.000Z";
+  bool isFuture(String date) {
+    return date == "2200-01-01 00:00:00.000Z";
   }
 
   Widget dismissedToast(String msg, dynamic currTask) {
@@ -87,43 +89,46 @@ class _TaskListState extends State<TaskList> {
       msg = msg.substring(0, 18) + "...";
     }
     msg += ' dismissed';
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 20),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(25),
-        color: Theme.of(context).primaryColorLight.withAlpha(200),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextButton(
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.zero,
-              minimumSize: Size.zero,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 75.0),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 20),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(25),
+          color: Theme.of(context).primaryColorLight.withAlpha(200),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextButton(
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                minimumSize: Size.zero,
+              ),
+              onPressed: () {
+                FirebaseFirestore.instance
+                    .collection("tasks")
+                    .doc(widget.uid)
+                    .collection("mytasks")
+                    .doc(currTask['id'])
+                    .set(
+                  {
+                    "desc": currTask['desc'],
+                    "id": currTask['id'],
+                    "isDone": currTask['isDone'],
+                    "hasImage": currTask['hasImage'],
+                    "dueDate": currTask['dueDate'],
+                    "dueTime": currTask['dueTime'],
+                  },
+                );
+              },
+              child: Text(
+                "Undo",
+              ),
             ),
-            onPressed: () {
-              FirebaseFirestore.instance
-                  .collection("tasks")
-                  .doc(widget.uid)
-                  .collection("mytasks")
-                  .doc(currTask['id'])
-                  .set(
-                {
-                  "desc": currTask['desc'],
-                  "id": currTask['id'],
-                  "isDone": currTask['isDone'],
-                  "hasImage": currTask['hasImage'],
-                  "dueDate": currTask['dueDate'],
-                  "dueTime": currTask['dueTime'],
-                },
-              );
-            },
-            child: Text(
-              "Undo",
-            ),
-          ),
-          Text(msg),
-        ],
+            Text(msg),
+          ],
+        ),
       ),
     );
   }
@@ -132,13 +137,15 @@ class _TaskListState extends State<TaskList> {
     FToast().init(context);
     FToast().removeQueuedCustomToasts();
     FToast().showToast(
-        child: dismissedToast(msg, currTask), gravity: ToastGravity.BOTTOM);
+        toastDuration: Duration(seconds: 2, milliseconds: 500),
+        child: dismissedToast(msg, currTask),
+        gravity: ToastGravity.SNACKBAR);
   }
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder(
-      stream: myStream,
+      stream: widget.myStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(
@@ -268,7 +275,7 @@ class _TaskListState extends State<TaskList> {
                               decoration: TextDecoration.lineThrough,
                               color: Colors.grey),
                     ),
-                    subtitle: !isEpoch(currTask['dueDate'])
+                    subtitle: !isFuture(currTask['dueDate'])
                         ? Row(
                             children: [
                               Text(

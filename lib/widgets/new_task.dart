@@ -23,8 +23,8 @@ class _NewTaskState extends State<NewTask> {
   TimeOfDay _selectedTime;
   File _selectedImage;
 
-  bool isEpoch(String date) {
-    return date == '1970-01-01 00:00:00.000Z';
+  bool isFuture(String date) {
+    return date == '2200-01-01 00:00:00.000Z';
   }
 
   selectImageFromGallery() async {
@@ -40,9 +40,9 @@ class _NewTaskState extends State<NewTask> {
       context: context,
       //if the task has no date, set initial date to now. If it does, set it to that date
       initialDate:
-          isEpoch(_selectedDate.toString()) ? DateTime.now() : _selectedDate,
+          isFuture(_selectedDate.toString()) ? DateTime.now() : _selectedDate,
       //if the task has no date, set first available date to now. If it does, check if the selected date has passed.
-      firstDate: isEpoch(_selectedDate.toString())
+      firstDate: isFuture(_selectedDate.toString())
           ? DateTime.now()
           : _selectedDate.compareTo(DateTime.now()) <= 0
               // if the selected date has passed, set first available date to selected date. If not, set it to now.
@@ -116,7 +116,7 @@ class _NewTaskState extends State<NewTask> {
   Widget build(BuildContext context) {
     if (_selectedDate == null) {
       _selectedTime == null;
-      _selectedDate = DateTime.utc(1970, 1, 1);
+      _selectedDate = DateTime.utc(2200, 1, 1);
     }
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -170,7 +170,7 @@ class _NewTaskState extends State<NewTask> {
                           },
                         ),
                       ),
-                      if (!isEpoch(_selectedDate.toString()))
+                      if (!isFuture(_selectedDate.toString()))
                         Row(
                           children: [
                             SizedBox(
@@ -212,7 +212,7 @@ class _NewTaskState extends State<NewTask> {
                         padding: EdgeInsets.zero,
                         constraints: BoxConstraints(),
                         onPressed: _dateAndTimePicker,
-                        icon: isEpoch(_selectedDate.toString())
+                        icon: isFuture(_selectedDate.toString())
                             ? const Icon(Icons.calendar_month)
                             : const Icon(Icons.edit_calendar),
                       ),
@@ -244,6 +244,7 @@ class _NewTaskState extends State<NewTask> {
                   child: Container(
                     margin: EdgeInsets.all(3),
                     child: CircleAvatar(
+                      radius: 23,
                       child: Container(
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
@@ -263,6 +264,7 @@ class _NewTaskState extends State<NewTask> {
                 Container(
                   margin: EdgeInsets.all(3),
                   child: CircleAvatar(
+                    radius: 23,
                     backgroundColor: Colors.white.withOpacity(0.5),
                     child: ClipRRect(
                       borderRadius: BorderRadius.all(Radius.circular(100)),

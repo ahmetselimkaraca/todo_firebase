@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import "package:firebase_auth/firebase_auth.dart";
 import "package:cloud_firestore/cloud_firestore.dart";
 import 'package:todo_firebase/widgets/color_options.dart';
+import 'package:todo_firebase/widgets/sort_options.dart';
 
 import '../widgets/new_task.dart';
 import '../widgets/task_list.dart';
@@ -10,7 +11,6 @@ import '../models/task.dart';
 
 class Home extends StatefulWidget {
   Function changeThemeColor;
-
   Home(this.changeThemeColor, {Key key}) : super(key: key);
 
   @override
@@ -19,6 +19,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   String uid;
+  var myStream;
 
   @override
   void initState() {
@@ -86,6 +87,27 @@ class _HomeState extends State<Home> {
     );
   }
 
+  _changeSortKey(String sortKey) {
+    setState(() {
+      if (sortKey == 'id' || sortKey == 'desc') {
+        myStream = FirebaseFirestore.instance
+            .collection("tasks")
+            .doc(uid)
+            .collection("mytasks")
+            .orderBy(sortKey)
+            .snapshots();
+      } else if (sortKey == 'dueDate') {
+        myStream = FirebaseFirestore.instance
+            .collection("tasks")
+            .doc(uid)
+            .collection("mytasks")
+            .orderBy(sortKey)
+            .orderBy('dueTime')
+            .snapshots();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final appBar = AppBar(
@@ -127,6 +149,31 @@ class _HomeState extends State<Home> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            showModalBottomSheet(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(15),
+                                    topRight: Radius.circular(15)),
+                              ),
+                              isScrollControlled: true,
+                              context: context,
+                              builder: (bCtx) {
+                                return SortOptions(_changeSortKey);
+                              },
+                            );
+                          },
+                          child: Text('Sort tasks'),
+                        ),
+                        Icon(Icons.sort, size: 15),
+                      ],
+                    ),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -189,6 +236,7 @@ class _HomeState extends State<Home> {
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
+        //to allow toasts gravity to be changed when keyboard is shown
         resizeToAvoidBottomInset: false,
         appBar: appBar,
         body: Stack(
@@ -196,7 +244,7 @@ class _HomeState extends State<Home> {
             SingleChildScrollView(
               child: SizedBox(
                 height: usableHeight - textBoxHeight,
-                child: TaskList(uid),
+                child: TaskList(myStream, uid),
               ),
             ),
             //this container is used to add a fade effect on top of the list
@@ -217,6 +265,7 @@ class _HomeState extends State<Home> {
         ),
         floatingActionButton: Padding(
             padding: EdgeInsets.only(
+                //resizeToAvoidBottomInset: false causes the FAB to be obscured by the keyboard
                 bottom: MediaQuery.of(context).viewInsets.bottom),
             child: NewTask(_addTaskToFirebase)),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
