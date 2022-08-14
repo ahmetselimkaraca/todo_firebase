@@ -26,7 +26,7 @@ class _AuthScreenState extends State<AuthScreen> {
               end: Alignment.bottomCenter,
               colors: <Color>[
                 Theme.of(context).primaryColor,
-                Theme.of(context).scaffoldBackgroundColor,
+                Theme.of(context).secondaryHeaderColor,
               ]),
         ),
       ),

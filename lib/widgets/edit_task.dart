@@ -1,4 +1,9 @@
+import 'dart:io';
+import 'dart:ui';
+
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 class EditTask extends StatefulWidget {
@@ -14,6 +19,8 @@ class _EditTaskState extends State<EditTask> {
   final _titleController = TextEditingController();
   DateTime _selectedDate;
   TimeOfDay _selectedTime;
+  File _selectedImage;
+  String _imageURL;
   final myFocusNode = FocusNode();
 
   void initState() {
@@ -24,6 +31,7 @@ class _EditTaskState extends State<EditTask> {
           hour: int.parse(widget.currTask['dueTime'].split(':')[0]),
           minute: int.parse(widget.currTask['dueTime'].split(':')[1]));
     } catch (e) {}
+    _imageURL = widget.currTask['imageURL'];
     super.initState();
   }
 
@@ -32,13 +40,40 @@ class _EditTaskState extends State<EditTask> {
     if (enteredTitle.isEmpty) {
       return;
     }
-    widget.submitEdit(
-        widget.currTask, _titleController.text, _selectedDate, _selectedTime);
+    widget.submitEdit(widget.currTask, _titleController.text, _selectedDate,
+        _selectedTime, uploadImage(_selectedImage));
     Navigator.of(context).pop();
   }
 
   bool isFuture(String date) {
     return date == "2200-01-01 00:00:00.000Z";
+  }
+
+  selectImageFromGallery() async {
+    final picker = ImagePicker();
+    final imageFile = await picker.pickImage(source: ImageSource.gallery);
+    if (imageFile != null) {
+      setState(() {
+        _selectedImage = File(imageFile.path);
+      });
+    }
+  }
+
+  Future<String> uploadImage(File image) async {
+    String imageURL;
+    String imageId = DateTime.now().microsecondsSinceEpoch.toString();
+    Reference ref = FirebaseStorage.instance.ref().child('images/$imageId');
+    try {
+      await ref.putFile(_selectedImage);
+      imageURL = await ref.getDownloadURL();
+      return imageURL;
+    } catch (e) {
+      if (_imageURL != "") {
+        return _imageURL;
+      } else {
+        return "";
+      }
+    }
   }
 
   void _dateAndTimePicker() {
@@ -123,8 +158,181 @@ class _EditTaskState extends State<EditTask> {
           bottom: (MediaQuery.of(context).viewInsets.bottom) + 10.0,
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            if (_imageURL != "" || _selectedImage != null)
+              Stack(
+                children: [
+                  Container(
+                    height: 200,
+                    width: double.infinity,
+                    child: _selectedImage != null
+                        ? null
+                        : Image.network(
+                            widget.currTask['imageURL'],
+                            fit: BoxFit.cover,
+                          ),
+                    decoration: _selectedImage != null
+                        ? BoxDecoration(
+                            image: DecorationImage(
+                                image: FileImage(_selectedImage),
+                                fit: BoxFit.cover))
+                        : null,
+                  ),
+                  SizedBox(
+                    height: 201,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          height: 10,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.bottomCenter,
+                              end: Alignment.topCenter,
+                              colors: <Color>[
+                                Colors.white.withOpacity(0),
+                                Theme.of(context).scaffoldBackgroundColor,
+                              ],
+                            ),
+                          ),
+                        ),
+                        Container(
+                          width: double.infinity,
+                          height: 10,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: <Color>[
+                                Colors.white.withOpacity(0),
+                                Theme.of(context).scaffoldBackgroundColor,
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: Column(
+                      children: [
+                        Stack(
+                          children: [
+                            Positioned(
+                              top: 3,
+                              child: Container(
+                                margin: EdgeInsets.all(3),
+                                child: CircleAvatar(
+                                  radius: 15,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [
+                                          Theme.of(context).primaryColorDark,
+                                          Theme.of(context).primaryColorLight,
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Container(
+                              margin: EdgeInsets.all(3),
+                              child: CircleAvatar(
+                                radius: 15,
+                                backgroundColor: Colors.white.withOpacity(0.5),
+                                child: ClipRRect(
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(100)),
+                                  child: BackdropFilter(
+                                    filter:
+                                        ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+                                    child: IconButton(
+                                      padding: EdgeInsets.zero,
+                                      iconSize: 20,
+                                      onPressed: () {
+                                        selectImageFromGallery();
+                                      },
+                                      icon:
+                                          Icon(Icons.edit, color: Colors.white),
+                                      splashRadius: 20,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Stack(
+                          children: [
+                            Positioned(
+                              top: 3,
+                              child: Container(
+                                margin: EdgeInsets.all(3),
+                                child: CircleAvatar(
+                                  radius: 15,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [
+                                          Colors.red.shade900,
+                                          Colors.red,
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Container(
+                              margin: EdgeInsets.all(3),
+                              child: CircleAvatar(
+                                radius: 15,
+                                backgroundColor: Colors.white.withOpacity(0.5),
+                                child: ClipRRect(
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(100)),
+                                  child: BackdropFilter(
+                                    filter:
+                                        ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+                                    child: IconButton(
+                                      padding: EdgeInsets.zero,
+                                      iconSize: 20,
+                                      onPressed: () {
+                                        setState(() {
+                                          _imageURL = "";
+                                          _selectedImage = null;
+                                        });
+                                      },
+                                      icon: Icon(Icons.clear,
+                                          color: Colors.white),
+                                      splashRadius: 20,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            if (_imageURL == "" && _selectedImage == null)
+              TextButton(
+                  onPressed: () => selectImageFromGallery(),
+                  child: Text('Attach Image')),
             TextField(
               focusNode: myFocusNode,
               decoration: InputDecoration(

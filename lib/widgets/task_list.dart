@@ -4,9 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:todo_firebase/widgets/task_options.dart';
-
-import '../screens/home.dart';
+import 'package:todo_firebase/widgets/edit_task.dart';
 
 class TaskList extends StatefulWidget {
   final String uid;
@@ -19,30 +17,6 @@ class TaskList extends StatefulWidget {
 
 class _TaskListState extends State<TaskList> {
   @override
-  void initState() {
-    widget.myStream = FirebaseFirestore.instance
-        .collection('tasks')
-        .doc(widget.uid)
-        .collection('mytasks')
-        .orderBy('dueDate')
-        .orderBy('dueTime')
-        .snapshots();
-
-    super.initState();
-  }
-
-// TODO: Update this to actually add an image too
-  void _updateHasImage(currTask) {
-    FirebaseFirestore.instance
-        .collection('tasks')
-        .doc(widget.uid)
-        .collection('mytasks')
-        .doc(currTask['id'])
-        .update({
-      'hasImage': !currTask['hasImage'],
-    });
-  }
-
   String timeOfDayAsHhMm(TimeOfDay tod) {
     try {
       String timeAsString = tod.format(context);
@@ -64,8 +38,9 @@ class _TaskListState extends State<TaskList> {
     }
   }
 
-  void _updateTaskDesc(
-      dynamic currTask, String newDesc, DateTime newDate, TimeOfDay newTime) {
+  void _updateTaskDesc(dynamic currTask, String newDesc, DateTime newDate,
+      TimeOfDay newTime, Future<String> newURL) async {
+    String url = await newURL;
     FirebaseFirestore.instance
         .collection('tasks')
         .doc(widget.uid)
@@ -76,6 +51,7 @@ class _TaskListState extends State<TaskList> {
         'desc': newDesc,
         'dueDate': newDate.toString(),
         'dueTime': timeOfDayAsHhMm(newTime),
+        'imageURL': url,
       },
     );
   }
@@ -116,9 +92,9 @@ class _TaskListState extends State<TaskList> {
                     "desc": currTask['desc'],
                     "id": currTask['id'],
                     "isDone": currTask['isDone'],
-                    "hasImage": currTask['hasImage'],
                     "dueDate": currTask['dueDate'],
                     "dueTime": currTask['dueTime'],
+                    "imageURL": currTask['imageURL'],
                   },
                 );
               },
@@ -228,8 +204,7 @@ class _TaskListState extends State<TaskList> {
                     context: context,
                     builder: (bCtx) {
                       FocusManager.instance.primaryFocus?.unfocus();
-                      return TaskOptions(
-                          _updateTaskDesc, _updateHasImage, currTask);
+                      return EditTask(currTask, _updateTaskDesc);
                     },
                   );
                 },
@@ -284,14 +259,92 @@ class _TaskListState extends State<TaskList> {
                             ],
                           )
                         : null,
-                    trailing: currTask['hasImage']
+                    trailing: currTask['imageURL'] != ""
                         ? IconButton(
-                            onPressed: () =>
-                                null, //* Will be used for displayImage
+                            onPressed: () => showModalBottomSheet(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.only(
+                                      topLeft: Radius.circular(15),
+                                      topRight: Radius.circular(15)),
+                                ),
+                                context: context,
+                                builder: (bCtx) {
+                                  return Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      SizedBox(
+                                        height: 20,
+                                      ),
+                                      Stack(
+                                        children: [
+                                          Container(
+                                            height: 200,
+                                            width: double.infinity,
+                                            child: Image.network(
+                                              currTask['imageURL'],
+                                              fit: BoxFit.cover,
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            height: 201,
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Container(
+                                                  width: double.infinity,
+                                                  height: 10,
+                                                  decoration: BoxDecoration(
+                                                    gradient: LinearGradient(
+                                                      begin: Alignment
+                                                          .bottomCenter,
+                                                      end: Alignment.topCenter,
+                                                      colors: <Color>[
+                                                        Colors.white
+                                                            .withOpacity(0),
+                                                        Theme.of(context)
+                                                            .scaffoldBackgroundColor,
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                                Container(
+                                                  width: double.infinity,
+                                                  height: 10,
+                                                  decoration: BoxDecoration(
+                                                    gradient: LinearGradient(
+                                                      begin:
+                                                          Alignment.topCenter,
+                                                      end: Alignment
+                                                          .bottomCenter,
+                                                      colors: <Color>[
+                                                        Colors.white
+                                                            .withOpacity(0),
+                                                        Theme.of(context)
+                                                            .scaffoldBackgroundColor,
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Text(currTask['desc']),
+                                      if (!isFuture(currTask['dueDate']))
+                                        Text(
+                                            'Due ${DateFormat('dd/MM').format(DateTime.parse(currTask['dueDate']))} - ${currTask['dueTime']}'),
+                                    ],
+                                  );
+                                }),
                             icon: Icon(Icons.image_outlined),
                             color: Theme.of(context).primaryColorDark,
                             splashRadius: 20,
                           )
+                        // must render an empty icon to prevent text alignment issues when the task is long
+                        // and has no image. simply passing null does not work
                         : IconButton(
                             onPressed: null,
                             icon: Icon(null),

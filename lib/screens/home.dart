@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
 import "package:firebase_auth/firebase_auth.dart";
 import "package:cloud_firestore/cloud_firestore.dart";
-import 'package:todo_firebase/widgets/color_options.dart';
-import 'package:todo_firebase/widgets/sort_options.dart';
 
+import '../widgets/color_options.dart';
+import '../widgets/sort_options.dart';
 import '../widgets/new_task.dart';
 import '../widgets/task_list.dart';
 import '../models/task.dart';
 
 class Home extends StatefulWidget {
-  Function changeThemeColor;
+  final Function changeThemeColor;
   Home(this.changeThemeColor, {Key key}) : super(key: key);
 
   @override
@@ -24,6 +25,11 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     getUid();
+    myStream = FirebaseFirestore.instance
+        .collection('tasks')
+        .doc(uid)
+        .collection('mytasks')
+        .snapshots();
     super.initState();
   }
 
@@ -58,8 +64,10 @@ class _HomeState extends State<Home> {
     }
   }
 
-  _addTaskToFirebase(
-      String taskText, DateTime dueDate, TimeOfDay dueTime) async {
+  _addTaskToFirebase(String taskText, DateTime dueDate, TimeOfDay dueTime,
+      Future<String> imageURL) async {
+    String url = await imageURL;
+
     final newTask = Task(
       taskText: taskText,
       id: DateTime.now().toString(),
@@ -80,14 +88,16 @@ class _HomeState extends State<Home> {
         "desc": taskText,
         "id": newTask.id,
         "isDone": newTask.isDone,
-        "hasImage": newTask.hasImage,
+        "hasImage": url != "",
         "dueDate": newTask.dueDate,
         "dueTime": newTask.dueTime,
+        "imageURL": url + "",
       },
     );
   }
 
-  _changeSortKey(String sortKey) {
+  _changeSortKey(String sortKey) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       if (sortKey == 'id' || sortKey == 'desc') {
         myStream = FirebaseFirestore.instance
@@ -101,10 +111,11 @@ class _HomeState extends State<Home> {
             .collection("tasks")
             .doc(uid)
             .collection("mytasks")
-            .orderBy(sortKey)
+            .orderBy('dueDate')
             .orderBy('dueTime')
             .snapshots();
       }
+      prefs.setString('sortType', sortKey);
     });
   }
 
@@ -126,7 +137,7 @@ class _HomeState extends State<Home> {
             end: Alignment.bottomCenter,
             colors: <Color>[
               Theme.of(context).primaryColor,
-              Theme.of(context).scaffoldBackgroundColor,
+              Theme.of(context).secondaryHeaderColor,
             ],
           ),
         ),

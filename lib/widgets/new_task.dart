@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class NewTask extends StatefulWidget {
   final Function addToFirestore;
@@ -31,7 +32,22 @@ class _NewTaskState extends State<NewTask> {
     final picker = ImagePicker();
     final imageFile = await picker.pickImage(source: ImageSource.gallery);
     if (imageFile != null) {
-      _selectedImage = File(imageFile.path);
+      setState(() {
+        _selectedImage = File(imageFile.path);
+      });
+    }
+  }
+
+  Future<String> uploadImage(File image) async {
+    String imageURL;
+    String imageId = DateTime.now().microsecondsSinceEpoch.toString();
+    Reference ref = FirebaseStorage.instance.ref().child('images/$imageId');
+    try {
+      await ref.putFile(_selectedImage);
+      imageURL = await ref.getDownloadURL();
+      return imageURL;
+    } catch (e) {
+      return "";
     }
   }
 
@@ -109,7 +125,8 @@ class _NewTaskState extends State<NewTask> {
     if (textController.text.isEmpty) {
       return;
     }
-    widget.addToFirestore(textController.text, _selectedDate, _selectedTime);
+    widget.addToFirestore(textController.text, _selectedDate, _selectedTime,
+        uploadImage(_selectedImage));
   }
 
   @override
@@ -219,12 +236,28 @@ class _NewTaskState extends State<NewTask> {
                       SizedBox(
                         width: 10,
                       ),
+                      if (_selectedImage != null)
+                        SizedBox(
+                          width: 30,
+                          height: 30,
+                          child: FittedBox(
+                            child: IconButton(
+                              splashRadius: 15,
+                              onPressed: () => setState(() {
+                                _selectedImage = null;
+                              }),
+                              icon: Icon(Icons.close),
+                            ),
+                          ),
+                        ),
                       IconButton(
                         splashRadius: 20,
                         padding: EdgeInsets.zero,
                         constraints: BoxConstraints(),
                         onPressed: () => selectImageFromGallery(),
-                        icon: const Icon(Icons.image),
+                        icon: _selectedImage == null
+                            ? const Icon(Icons.image_outlined)
+                            : const Icon(Icons.image),
                       ),
                       SizedBox(
                         width: 10,
@@ -278,6 +311,7 @@ class _NewTaskState extends State<NewTask> {
                             setState(() {
                               _selectedDate = null;
                               _selectedTime = null;
+                              _selectedImage = null;
                             });
                           },
                           icon: Icon(Icons.add, color: Colors.white),
